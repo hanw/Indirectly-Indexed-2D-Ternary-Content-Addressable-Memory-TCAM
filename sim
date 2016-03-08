@@ -68,7 +68,7 @@
 
 # setup environment variables and Altera's CAD tools 
 # change file to your own flow if necessary 
-source ./altera.15.1.csh
+#source ./altera.15.1.csh
 
 # text coloring and formatting
 set  BLK  = '\x1b[1;30m' # black
@@ -193,6 +193,8 @@ foreach CURARCH ($ARCHLST)
       foreach CURSEED ($SEEDLST)
         @ FlowOprCnt++
 
+	set QUARTUS_ROOTDIR =  "/home/hwang/altera/14.0/quartus/"
+
         printf "${GRNI}\n== Starting Simulation (${FlowOprCnt}/${FlowOprNum}): [Architecture: ${ARCHLST}; TCAM depth:${CURCAMD}; Pattern width:${CURPATW}; Random seed: ${CURSEED}; Simulation cycles:${SCYCNUM}]\n${RST}"
 
         # remove work directory to recompile verilog
@@ -200,6 +202,29 @@ foreach CURARCH ($ARCHLST)
         # recreate work directory
         vlib work
 
+	# Using non-OEM Version, compile all of the libraries
+	set NOIMMEDCA = "-noimmedca"
+	vlib lpm_ver
+	vmap lpm_ver lpm_ver
+	vlog -work lpm_ver $QUARTUS_ROOTDIR/eda/sim_lib/220model.v
+
+	vlib altera_ver
+	vmap altera_ver altera_ver
+	vlog -work altera_ver /home/hwang/altera/14.0/quartus/eda/sim_lib/altera_primitives.v
+
+	vlib stratixv_ver
+	vmap stratixv_ver stratixv_ver
+	vlog -work stratixv_ver /home/hwang/altera/14.0/quartus/eda/sim_lib/stratixv_atoms.v
+	vlog -work stratixv_ver /home/hwang/altera/14.0/quartus/eda/sim_lib/stratixv_hssi_atoms.v
+
+	vlib altera_mf_ver
+	vmap altera_mf_ver altera_mf_ver
+	vlog -work altera_mf_ver $QUARTUS_ROOTDIR/eda/sim_lib/altera_mf.v
+
+	vlib sgate_ver
+	vmap sgate_ver sgate_ver
+	vlog -work sgate_ver $QUARTUS_ROOTDIR/eda/sim_lib/sgate.v
+ 
         # run current simulation
 //      vlog -work work +define+SIM+ARCH=\"$CURARCH\"+VERBOSE=$VERBOSE+PWRT=$PIPEWRT+CYCC=$SCYCNUM+CDEP=$CURCAMD+PWID=$CURPATW+SEED=$CURSEED+PIPE=0+REGI=0+REGO=0 utils.vh bcam_reg.v prefreg.v lpm_bhv.v tcam_pem_bhv.v tcam_lpm_bhv.v pem_bhv.v camctl.v dpmlab.v mwm20k.v setram.v iitram9bx1k.v iitram9b.v iitcam9b.v iitcam.v iitcam_tb.v
         vlog -work work +define+SIM+ARCH=\"$CURARCH\"+VERBOSE=$VERBOSE+PWRT=$PIPEWRT+CYCC=$SCYCNUM+CDEP=$CURCAMD+PWID=$CURPATW+SEED=$CURSEED+PIPE=0+REGI=0+REGO=0 utils.vh bcam_reg.v prefreg.v lpm_out.v tcam_pem_bhv.v tcam_lpm_bhv.v pem_bhv.v camctl.v dpmlab.v mwm20k.v setram.v iitram9bx1k.v iitram9b.v iitcam9b.v iitcam.v iitcam_tb.v
